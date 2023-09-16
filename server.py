@@ -32,7 +32,7 @@ def get_evaluate_fn(model: LogisticRegression):
 # Start Flower server for five rounds of federated learning
 if __name__ == "__main__":
     model = LogisticRegression()
-    utils.set_initial_params(model, 8, 2)
+    utils.set_initial_params(model, 2, 44)
     strategy = fl.server.strategy.FedAvg(
         min_available_clients=2,
         evaluate_fn=get_evaluate_fn(model),

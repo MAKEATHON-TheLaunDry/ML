@@ -22,7 +22,7 @@ if __name__ == "__main__":
     )
 
     # Setting initial parameters, akin to model.compile for keras models
-    utils.set_initial_params(model, 14, 2)
+    utils.set_initial_params(model, 2, 44)
 
     # Define Flower client
     class MnistClient(fl.client.NumPyClient):
@@ -45,4 +45,4 @@ if __name__ == "__main__":
             return loss, len(X_test), {"accuracy": accuracy}
 
     # Start Flower client
-    fl.client.start_numpy_client(server_address="0.0.0.0:8080", client=MnistClient())
+    fl.client.start_numpy_client(server_address="localhost:8080", client=MnistClient())
