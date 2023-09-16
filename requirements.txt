@@ -11,3 +11,8 @@ torchviz
 torchsummaryX
 numpy
 sklearn
+pandas
+matplotlib
+scipy
+cognipy
+networkx
