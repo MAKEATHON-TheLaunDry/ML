@@ -18,7 +18,7 @@ if __name__ == "__main__":
     # Create LogisticRegression Model
     model = LogisticRegression(
         penalty="l2",
-        max_iter=5,  # local epoch
+        max_iter=1,  # local epoch
         warm_start=True,  # prevent refreshing weights when fitting
     )
 
