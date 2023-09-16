@@ -284,12 +284,12 @@ async def main():
         "Brazil Real": "BRL"
     }
 
-    client = ArangoClient(hosts="http://localhost:8529")
+    client = ArangoClient(hosts="http://arangodb_db_container:8529")
 
     # Connect to "_system" database as root user.
     sys_db = await client.db("_system", username=str("root"), password=str("Blogchain"))
 
-    df = pd.read_csv("data_0.csv")
+    df = pd.read_csv("/data/data_0.csv")
     # turn From Bank from int to string
     df["From Bank"] = df["From Bank"].astype(str)
     df["To Bank"] = df["To Bank"].astype(str)
