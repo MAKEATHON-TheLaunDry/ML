@@ -4,6 +4,9 @@ from sklearn.linear_model import LogisticRegression
 import openml
 import pandas as pd
 import glob
+from aioarango import ArangoClient
+
+
 #  train test split sklearn import
 from sklearn.model_selection import train_test_split
 
@@ -56,15 +59,25 @@ def set_initial_params(model: LogisticRegression, n_classes: int, n_features: in
 
 def load_bankingdata():
     # Specify the pattern to match CSV files (e.g., data_*.csv)
-    combined_data = pd.read_csv('data_0.csv')
 
     #Concatenate all DataFrames into a single DataFrame
-    X = combined_data.drop(['Is Laundering'], axis=1)
-    X = combined_data.drop(['Timestamp'], axis=1)
-    # one hot encoding of categorical variables
-    y = combined_data['Is Laundering']
-    X_train, X_test, y_train, y_test = train_test_split(X, y, train_size=0.8, test_size=0.2, random_state=42, stratify=combined_data['Is Laundering'])
+    data = connecto_to_arango()
+    data = pd.DataFrame(data)
+    X_train, X_test, y_train, y_test = train_test_split(X, y, train_size=0.8, test_size=0.2, random_state=42, stratify=data['Is Laundering'])
     return (X_train, y_train), (X_test, y_test)
+
+async def connecto_to_arango():
+    client = ArangoClient(hosts="http://localhost:8529")
+
+    # Connect to "_system" database as root user.
+    db = await client.db("Transactions", username=str("root"), password=str("Blogchain"))
+    cursor =  db.aql.execute('FOR p IN transactions RETURN p', count=True)
+    doc = [doc for doc in cursor][0]
+    data = pd.DataFrame(doc)
+    X = data.drop(['Is Laundering'], axis=1)
+    y = data['Is Laundering']
+    return data
+
 
 def shuffle(X: np.ndarray, y: np.ndarray) -> XY:
     """Shuffle X and y."""
