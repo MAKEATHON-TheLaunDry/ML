@@ -1,14 +1,5 @@
 pandas
-matplotlib.pyplot
 seaborn
-torch
-torchvision
-torchtext
-torchsummary
-torchmetrics
-torchinfo
-torchviz
-torchsummaryX
 numpy
 sklearn
 pandas

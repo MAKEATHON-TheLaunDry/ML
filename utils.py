@@ -2,6 +2,10 @@ from typing import Tuple, Union, List
 import numpy as np
 from sklearn.linear_model import LogisticRegression
 import openml
+import pandas as pd
+import glob
+#  train test split sklearn import
+from sklearn.model_selection import train_test_split
 
 XY = Tuple[np.ndarray, np.ndarray]
 Dataset = Tuple[XY, XY]
@@ -63,6 +67,31 @@ def load_mnist() -> Dataset:
     x_test, y_test = X[60000:], y[60000:]
     return (x_train, y_train), (x_test, y_test)
 
+def load_bankingdata():
+    # Specify the pattern to match CSV files (e.g., data_*.csv)
+    file_pattern = 'data_*.csv'
+
+    # Use glob to get a list of file names that match the pattern
+    file_list = glob.glob(file_pattern)
+
+    # Initialize an empty list to store DataFrames
+    data_frames = []
+
+    # Loop through the file names and read each CSV into a DataFrame
+    for file_name in file_list:
+        df = pd.read_csv(file_name)
+        data_frames.append(df)
+
+    #Concatenate all DataFrames into a single DataFrame
+    combined_data = pd.concat(data_frames, ignore_index=True)
+    X = combined_data.drop(['Is Laundering'], axis=1)
+    X = combined_data.drop(['Timestamp'], axis=1)
+    # one hot encoding of categorical variables
+    X = pd.get_dummies(X)
+    print(X)
+    y = combined_data['Is Laundering']
+    X_train, X_test, y_train, y_test = train_test_split(X, y, train_size=0.8, test_size=0.2, random_state=42, stratify=combined_data['Is Laundering'])
+    return (X_train, y_train), (X_test, y_test)
 
 def shuffle(X: np.ndarray, y: np.ndarray) -> XY:
     """Shuffle X and y."""
