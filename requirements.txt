@@ -4,7 +4,6 @@ numpy
 sklearn
 matplotlib
 scipy
-cognipy
 networkx
 flwr~=1.4.0
 numpy~=1.21.1
