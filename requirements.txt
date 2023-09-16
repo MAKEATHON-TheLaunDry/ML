@@ -20,3 +20,6 @@ flwr~=1.4.0
 numpy~=1.21.1
 openml~=0.13.1
 scikit_learn~=1.2.2
+python-dotenv
+aioarango
+appengine-python-standard
