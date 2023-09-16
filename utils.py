@@ -37,15 +37,16 @@ def set_model_params(
     return model
 
 
-def set_initial_params(model: LogisticRegression):
+def set_initial_params(model: LogisticRegression, n_classes: int, n_features: int):
     """Sets initial parameters as zeros Required since model params are uninitialized
     until model.fit is called.
 
     But server asks for initial parameters from clients at launch. Refer to
     sklearn.linear_model.LogisticRegression documentation for more information.
     """
-    n_classes = 10  # MNIST has 10 classes
-    n_features = 784  # Number of features in dataset
+    # get number of classes and features of dataset 
+    n_classes = n_classes  # MNIST has 10 classes
+    n_features = n_features # Number of features in dataset
     model.classes_ = np.array([i for i in range(10)])
 
     model.coef_ = np.zeros((n_classes, n_features))
@@ -53,42 +54,14 @@ def set_initial_params(model: LogisticRegression):
         model.intercept_ = np.zeros((n_classes,))
 
 
-def load_mnist() -> Dataset:
-    """Loads the MNIST dataset using OpenML.
-
-    OpenML dataset link: https://www.openml.org/d/554
-    """
-    mnist_openml = openml.datasets.get_dataset(554)
-    Xy, _, _, _ = mnist_openml.get_data(dataset_format="array")
-    X = Xy[:, :-1]  # the last column contains labels
-    y = Xy[:, -1]
-    # First 60000 samples consist of the train set
-    x_train, y_train = X[:60000], y[:60000]
-    x_test, y_test = X[60000:], y[60000:]
-    return (x_train, y_train), (x_test, y_test)
-
 def load_bankingdata():
     # Specify the pattern to match CSV files (e.g., data_*.csv)
-    file_pattern = 'data_*.csv'
-
-    # Use glob to get a list of file names that match the pattern
-    file_list = glob.glob(file_pattern)
-
-    # Initialize an empty list to store DataFrames
-    data_frames = []
-
-    # Loop through the file names and read each CSV into a DataFrame
-    for file_name in file_list:
-        df = pd.read_csv(file_name)
-        data_frames.append(df)
+    combined_data = pd.read_csv('data_0.csv')
 
     #Concatenate all DataFrames into a single DataFrame
-    combined_data = pd.concat(data_frames, ignore_index=True)
     X = combined_data.drop(['Is Laundering'], axis=1)
     X = combined_data.drop(['Timestamp'], axis=1)
     # one hot encoding of categorical variables
-    X = pd.get_dummies(X)
-    print(X)
     y = combined_data['Is Laundering']
     X_train, X_test, y_train, y_test = train_test_split(X, y, train_size=0.8, test_size=0.2, random_state=42, stratify=combined_data['Is Laundering'])
     return (X_train, y_train), (X_test, y_test)
