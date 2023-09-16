@@ -68,8 +68,6 @@ def load_bankingdata():
 
 async def connecto_to_arango():
     client = ArangoClient(hosts="http://localhost:8529")
-
-    # Connect to "_system" database as root user.
     db = await client.db("Transactions", username=str("root"), password=str("Blogchain"))
     cursor =  db.aql.execute('FOR p IN transactions RETURN p', count=True)
     doc = [doc for doc in cursor][0]
