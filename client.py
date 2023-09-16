@@ -9,7 +9,7 @@ import utils
 
 if __name__ == "__main__":
     # Load MNIST dataset from https://www.openml.org/d/554
-    (X_train, y_train), (X_test, y_test) = utils.load_mnist()
+    (X_train, y_train), (X_test, y_test) = utils.load_bankingdata()
 
     # Split train set into 10 partitions and randomly use one for training.
     partition_id = np.random.choice(10)
