@@ -14,7 +14,9 @@ def get_evaluate_fn(model: LogisticRegression):
     """Return an evaluation function for server-side evaluation."""
 
     # Load test data here to avoid the overhead of doing it in `evaluate` itself
-    _, (X_test, y_test) = utils.load_mnist()
+    _, (X_test, y_test) = utils.load_bankingdata()
+    print(X_test.shape, y_test.shape)
+    print(model.predict_proba(X_test).shape)
 
     # The `evaluate` function will be called after every round
     def evaluate(server_round, parameters: fl.common.NDArrays, config):
@@ -30,7 +32,7 @@ def get_evaluate_fn(model: LogisticRegression):
 # Start Flower server for five rounds of federated learning
 if __name__ == "__main__":
     model = LogisticRegression()
-    utils.set_initial_params(model)
+    utils.set_initial_params(model, 8, 2)
     strategy = fl.server.strategy.FedAvg(
         min_available_clients=2,
         evaluate_fn=get_evaluate_fn(model),

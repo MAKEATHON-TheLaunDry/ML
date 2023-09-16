@@ -8,7 +8,6 @@ from sklearn.metrics import log_loss
 import utils
 
 if __name__ == "__main__":
-    # Load MNIST dataset from https://www.openml.org/d/554
     (X_train, y_train), (X_test, y_test) = utils.load_bankingdata()
 
     # Split train set into 10 partitions and randomly use one for training.
@@ -23,7 +22,7 @@ if __name__ == "__main__":
     )
 
     # Setting initial parameters, akin to model.compile for keras models
-    utils.set_initial_params(model)
+    utils.set_initial_params(model, 14, 2)
 
     # Define Flower client
     class MnistClient(fl.client.NumPyClient):
