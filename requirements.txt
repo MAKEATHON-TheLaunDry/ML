@@ -2,7 +2,6 @@ pandas
 seaborn
 numpy
 sklearn
-pandas
 matplotlib
 scipy
 cognipy
