@@ -4,7 +4,7 @@ from sklearn.linear_model import LogisticRegression
 import openml
 import pandas as pd
 import glob
-from aioarango import ArangoClient
+from arango import ArangoClient
 
 
 #  train test split sklearn import
@@ -63,18 +63,26 @@ def load_bankingdata():
     #Concatenate all DataFrames into a single DataFrame
     data = connecto_to_arango()
     data = pd.DataFrame(data)
-    X_train, X_test, y_train, y_test = train_test_split(X, y, train_size=0.8, test_size=0.2, random_state=42, stratify=data['Is Laundering'])
+    data.drop(['_id', '_key', '_rev', '_from', '_to'], axis=1, inplace=True)
+    print(data.columns)
+    df = pd.get_dummies(data, columns=['payment_currency', 'receiving_currency', 'payment_format'], drop_first=True)
+    # drop the columns that are not needed
+    print(data.columns)
+    df['amount'] = df['amount'].astype(float)
+    df['hour'] = df['hour'].astype(float)
+    df['day'] = df['day'].astype(int)
+    X = df.drop(['is_laundering'], axis=1)
+    y = df['is_laundering']
+    X_train, X_test, y_train, y_test = train_test_split(X, y, train_size=0.8, test_size=0.2, random_state=42, stratify=data['is_laundering'])
     return (X_train, y_train), (X_test, y_test)
 
-async def connecto_to_arango():
+def connecto_to_arango():
     client = ArangoClient(hosts="http://localhost:8529")
-    db = await client.db("Transactions", username=str("root"), password=str("Blogchain"))
+    db = client.db("Transactions", username=str("root"), password=str("Blogchain"))
     cursor =  db.aql.execute('FOR p IN transactions RETURN p', count=True)
-    doc = [doc for doc in cursor][0]
-    data = pd.DataFrame(doc)
-    X = data.drop(['Is Laundering'], axis=1)
-    y = data['Is Laundering']
-    return data
+    # get every document in the collection and return it as a list and parse it to a dataframe
+    doc = [doc for doc in cursor]
+    return doc
 
 
 def shuffle(X: np.ndarray, y: np.ndarray) -> XY:
