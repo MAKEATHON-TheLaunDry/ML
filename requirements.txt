@@ -1,7 +1,6 @@
 pandas
 seaborn
 numpy
-sklearn
 matplotlib
 scipy
 networkx
