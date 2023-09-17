@@ -20,6 +20,16 @@ services:
     depends_on:
       - arangodb_db_container
 
+  server:
+    build:
+      context: .
+      dockerfile: ./docker/server/Dockerfile
+
+  client:
+    build:
+      context: .
+      dockerfile: ./docker/client/Dockerfile
+
 volumes:
   arangodb_data_container:
   arangodb_apps_data_container:
