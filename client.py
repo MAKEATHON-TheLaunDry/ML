@@ -24,6 +24,7 @@ if __name__ == "__main__":
         penalty="l2",
         max_iter=1,  # local epoch
         warm_start=True,  # prevent refreshing weights when fitting
+        class_weight={0: 1, 1: 60000},  # Adjust the weight as needed
     )
 
     # Setting initial parameters, akin to model.compile for keras models
@@ -39,7 +40,6 @@ if __name__ == "__main__":
             # Ignore convergence failure due to low local epochs
             with warnings.catch_warnings():
                 warnings.simplefilter("ignore")
-                class_weight = {0: 1, 1: 60000}  # Adjust the weight as needed
                 model.fit(X_train, y_train)
             print(f"Training finished for round {config['server_round']}")
             return utils.get_model_parameters(model), len(X_train), {}
