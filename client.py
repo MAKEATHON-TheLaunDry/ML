@@ -39,7 +39,7 @@ if __name__ == "__main__":
             # Ignore convergence failure due to low local epochs
             with warnings.catch_warnings():
                 warnings.simplefilter("ignore")
-                class_weight = {0: 1, 1: 500}  # Adjust the weight as needed
+                class_weight = {0: 1, 1: 60000}  # Adjust the weight as needed
                 model.fit(X_train, y_train, class_weight=class_weight,)
             print(f"Training finished for round {config['server_round']}")
             return utils.get_model_parameters(model), len(X_train), {}
