@@ -14,16 +14,45 @@ services:
       - arangodb_apps_data_container:/var/lib/arangodb3-apps
 
   server:
+    hostname: federated_server
     build:
       context: .
       dockerfile: ./docker/server/Dockerfile
+    environment:
+      - MIN_CLIENTS=3
+    expose:
+      - 8080
 
-  client:
+  client-0:
     build:
       context: .
       dockerfile: ./docker/client/Dockerfile
+    environment:
+      - DB_NAME=Transactions0
     volumes:
       - ./data_0.csv:/data/data.csv
+    depends_on:
+      - arangodb_db_container
+
+  client-1:
+    build:
+      context: .
+      dockerfile: ./docker/client/Dockerfile
+    environment:
+      - DB_NAME=Transactions1
+    volumes:
+      - ./data_1.csv:/data/data.csv
+    depends_on:
+      - arangodb_db_container
+
+  client-2:
+    build:
+      context: .
+      dockerfile: ./docker/client/Dockerfile
+    environment:
+      - DB_NAME=Transactions2
+    volumes:
+      - ./data_2.csv:/data/data.csv
     depends_on:
       - arangodb_db_container
 

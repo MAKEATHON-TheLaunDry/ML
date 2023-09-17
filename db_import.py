@@ -1,16 +1,44 @@
-from aioarango import ArangoClient
-import os
-from aioarango import errno, DocumentInsertError
+from arango import ArangoClient
+from arango.http import DefaultHTTPClient
 
+from urllib3.util.retry import Retry
+from time import time
 import pandas as pd
-import asyncio
+import os
+
+from requests import Session
+from requests.adapters import HTTPAdapter
+
+class RetryHTTPClient(DefaultHTTPClient):
+    """Default HTTP client implementation."""
+
+    REQUEST_TIMEOUT = 60
+    RETRY_ATTEMPTS = 3
+    BACKOFF_FACTOR = 1
+    
+    def create_session(self, host: str) -> Session:
+        """Create and return a new session/connection.
+
+        :param host: ArangoDB host URL.
+        :type host: str
+        :returns: requests session object
+        :rtype: requests.Session
+        """
+        retry_strategy = Retry(
+            total=self.RETRY_ATTEMPTS,
+            backoff_factor=self.BACKOFF_FACTOR,
+            status_forcelist=[429, 500, 502, 503, 504],
+            allowed_methods=["HEAD", "GET", "OPTIONS"],
+        )
+        http_adapter = HTTPAdapter(max_retries=retry_strategy)
+
+        session = Session()
+        session.mount("https://", http_adapter)
+        session.mount("http://", http_adapter)
+
+        return session
 
 def import_data():
-    loop = asyncio.get_event_loop()
-    loop.run_until_complete(import_data_async())
-    loop.close()
-
-async def import_data_async():
     # dict must be accessed with CURRENCY_RATES["2022-09-01"]["BRL"]
     CURRENCY_RATES ={
     "2022-09-01":{
@@ -495,16 +523,21 @@ async def import_data_async():
         "Brazil Real": "BRL"
     }
 
-    client = ArangoClient(hosts="http://arangodb_db_container:8529")
+
+    client = ArangoClient(hosts="http://arangodb_db_container:8529", http_client=RetryHTTPClient())
 
     # Connect to "_system" database as root user.
     sys_db = None
-    while sys_db is None:
+    retry = True
+    print("Connecting to ArangoDB...")
+    while retry:
         try:
-            sys_db = await client.db("_system", username=str("root"), password=str("Blogchain"))
-        except Exception:
+            sys_db = client.db("_system", username=str("root"), password=str("Blogchain"))
+            sys_db.has_database("Transactions")
+            retry = False
+        except BaseException:
             print("Waiting for ArangoDB to start...")
-            await asyncio.sleep(1)
+            time.sleep(1)
 
     df = pd.read_csv("/data/data.csv")
     # turn From Bank from int to string
@@ -514,17 +547,18 @@ async def import_data_async():
     df["Timestamp"] = pd.to_datetime(df["Timestamp"])
 
     # Create a new database named "DDI_MC2".
+    DB_NAME = os.environ.get("DB_NAME")
 
-    if not await sys_db.has_database("Transactions"):
-        await sys_db.create_database("Transactions")
-    trx_db = await client.db("Transactions", username=str("root"), password=str("Blogchain"))
+    if not sys_db.has_database(DB_NAME):
+        sys_db.create_database(DB_NAME)
+    trx_db = client.db(DB_NAME, username=str("root"), password=str("Blogchain"))
 
-    if not await trx_db.has_graph("bank"):
-        await trx_db.create_graph("bank")
+    if not trx_db.has_graph("bank"):
+        trx_db.create_graph("bank")
     graph = trx_db.graph("bank")
 
-    if not await trx_db.has_collection("accounts"):
-        accounts = await trx_db.create_collection("accounts")
+    if not trx_db.has_collection("accounts"):
+        accounts = trx_db.create_collection("accounts")
         # get all accounts from df
         account_dict = dict()
         for index, row in df.iterrows():
@@ -540,10 +574,10 @@ async def import_data_async():
         print(f"Found {len(account_dict)} accounts")
 
         for acc, bank in account_dict.items():
-            await accounts.insert({"_key": acc, "bank": bank})
+            accounts.insert({"_key": acc, "bank": bank})
     
-    if not await graph.has_edge_definition("transactions"):
-        transactions = await graph.create_edge_definition(
+    if not graph.has_edge_definition("transactions"):
+        transactions = graph.create_edge_definition(
             edge_collection="transactions",
             from_vertex_collections=["accounts"],
             to_vertex_collections=["accounts"]
@@ -559,7 +593,7 @@ async def import_data_async():
             payment_format = row["Payment Format"]
             is_laundering = row["Is Laundering"]
             weekday = row["Timestamp"].weekday()
-            await transactions.insert({
+            transactions.insert({
                 "_from": f"accounts/{from_acc}",
                 "_to": f"accounts/{to_acc}",
                 # TODO in CHF umwechseln "amount": amount

@@ -5,7 +5,9 @@ import numpy as np
 from sklearn.linear_model import LogisticRegression
 from sklearn.metrics import log_loss
 
+
 import utils
+import time
 from db_import import import_data
 
 if __name__ == "__main__":
@@ -37,7 +39,7 @@ if __name__ == "__main__":
             # Ignore convergence failure due to low local epochs
             with warnings.catch_warnings():
                 warnings.simplefilter("ignore")
-                model.fit(X_train, y_train)
+                model.fit(X_train, y_train, sample_weight=y_train*600+1)
             print(f"Training finished for round {config['server_round']}")
             return utils.get_model_parameters(model), len(X_train), {}
 
@@ -48,4 +50,5 @@ if __name__ == "__main__":
             return loss, len(X_test), {"accuracy": accuracy}
 
     # Start Flower client
-    fl.client.start_numpy_client(server_address="localhost:8080", client=MnistClient())
+    time.sleep(10)
+    fl.client.start_numpy_client(server_address="federated_server:8080", client=MnistClient())

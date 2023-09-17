@@ -5,7 +5,7 @@ import openml
 import pandas as pd
 import glob
 from arango import ArangoClient
-
+from time import sleep
 
 #  train test split sklearn import
 from sklearn.model_selection import train_test_split
@@ -77,8 +77,11 @@ def load_bankingdata():
     return (X_train, y_train), (X_test, y_test)
 
 def connecto_to_arango():
-    client = ArangoClient(hosts="http://localhost:8529")
-    db = client.db("Transactions", username=str("root"), password=str("Blogchain"))
+    client = ArangoClient(hosts="http://arangodb_db_container:8529")
+    db = client.db("Transactions0", username=str("root"), password=str("Blogchain"))
+    while not db.has_collection('transactions'):
+        print("Waiting for transactions collection to be created")
+        sleep(3)
     cursor =  db.aql.execute('FOR p IN transactions RETURN p', count=True)
     # get every document in the collection and return it as a list and parse it to a dataframe
     doc = [doc for doc in cursor]
