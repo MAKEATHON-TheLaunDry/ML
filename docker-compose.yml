@@ -13,13 +13,6 @@ services:
       - arangodb_data_container:/var/lib/arangodb3
       - arangodb_apps_data_container:/var/lib/arangodb3-apps
 
-  db_importer:
-    build: .
-    volumes:
-      - ./data_0.csv:/data/data_0.csv
-    depends_on:
-      - arangodb_db_container
-
   server:
     build:
       context: .
@@ -29,6 +22,10 @@ services:
     build:
       context: .
       dockerfile: ./docker/client/Dockerfile
+    volumes:
+      - ./data_0.csv:/data/data.csv
+    depends_on:
+      - arangodb_db_container
 
 volumes:
   arangodb_data_container:

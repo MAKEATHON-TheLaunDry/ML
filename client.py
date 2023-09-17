@@ -6,8 +6,11 @@ from sklearn.linear_model import LogisticRegression
 from sklearn.metrics import log_loss
 
 import utils
+from db_import import import_data
 
 if __name__ == "__main__":
+    import_data()
+
     (X_train, y_train), (X_test, y_test) = utils.load_bankingdata()
 
     # Split train set into 10 partitions and randomly use one for training.

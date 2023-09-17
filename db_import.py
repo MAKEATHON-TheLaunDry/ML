@@ -3,9 +3,14 @@ import os
 from aioarango import errno, DocumentInsertError
 
 import pandas as pd
+import asyncio
 
+def import_data():
+    loop = asyncio.get_event_loop()
+    loop.run_until_complete(import_data_async())
+    loop.close()
 
-async def main():
+async def import_data_async():
     # dict must be accessed with CURRENCY_RATES["2022-09-01"]["BRL"]
     CURRENCY_RATES ={
     "2022-09-01":{
@@ -493,9 +498,15 @@ async def main():
     client = ArangoClient(hosts="http://arangodb_db_container:8529")
 
     # Connect to "_system" database as root user.
-    sys_db = await client.db("_system", username=str("root"), password=str("Blogchain"))
+    sys_db = None
+    while sys_db is None:
+        try:
+            sys_db = await client.db("_system", username=str("root"), password=str("Blogchain"))
+        except Exception:
+            print("Waiting for ArangoDB to start...")
+            await asyncio.sleep(1)
 
-    df = pd.read_csv("/data/data_0.csv")
+    df = pd.read_csv("/data/data.csv")
     # turn From Bank from int to string
     df["From Bank"] = df["From Bank"].astype(str)
     df["To Bank"] = df["To Bank"].astype(str)
@@ -573,7 +584,4 @@ async def main():
 
 
 if __name__ == '__main__':
-    import asyncio
-    loop = asyncio.get_event_loop()
-    loop.run_until_complete(main())
-    loop.close()
+    import_data()
