@@ -589,7 +589,10 @@ def import_data():
             receiving_currency = row["Receiving Currency"]
             payment_currency = row["Payment Currency"]
             date_str = row["Timestamp"].strftime("%Y-%m-%d")
-            amount = row["Amount Paid"] / CURRENCY_RATES[date_str][LONG_CURRENCY_TO_SHORT[payment_currency]]
+            try:
+                amount = row["Amount Paid"] / CURRENCY_RATES[date_str][LONG_CURRENCY_TO_SHORT[payment_currency]]
+            except KeyError:
+                amount = row["Amount Paid"]
             payment_format = row["Payment Format"]
             is_laundering = row["Is Laundering"]
             weekday = row["Timestamp"].weekday()
