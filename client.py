@@ -30,7 +30,7 @@ if __name__ == "__main__":
     utils.set_initial_params(model, 2, 44)
 
     # Define Flower client
-    class MnistClient(fl.client.NumPyClient):
+    class LaudryDetect(fl.client.NumPyClient):
         def get_parameters(self, config):  # type: ignore
             return utils.get_model_parameters(model)
 
@@ -52,4 +52,4 @@ if __name__ == "__main__":
 
     # Start Flower client
     time.sleep(10)
-    fl.client.start_numpy_client(server_address="federated_server:8080", client=MnistClient())
+    fl.client.start_numpy_client(server_address="federated_server:8080", client=LaudryDetect())
